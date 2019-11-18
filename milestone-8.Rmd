@@ -1,0 +1,61 @@
+---
+title: "Spotify"
+author: "Hannah Valencia"
+date: "11/16/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
+library(infer)
+library(janitor)
+library(ggplot2)
+library(spotifyr)
+library(tidyverse)
+```
+
+```{r}
+Sys.setenv(SPOTIFY_CLIENT_ID = "1ce7b32e4d444e1d9df600fd87f33350")  
+Sys.setenv(SPOTIFY_CLIENT_SECRET = "6709043e71214357892e9c271fe67625")  
+access_token <- get_spotify_access_token()
+```
+
+```{r}
+queen <- get_artist_audio_features("queen")
+```
+
+```{r}
+studio_albums <- c("Queen", "Queen II", "Sheer Heart Attack", "A Night At The Opera", "A Day At The Races", "News Of The World", "Jazz", "The Game", "Flash Gordon", "Hot Space", "The Works", "A Kind Of Magic", "The Miracle", "Innuendo", "Made In Heaven")
+  
+  
+queen <- queen %>%
+  filter(album_name %in% studio_albums)
+```
+
+```{r}
+queen %>%
+  distinct(track_name)
+```
+
+```{r}
+queen %>%
+  group_by(album_name) %>%
+  ggplot(aes(x = track_name, y = danceability, color = album_name)) +
+  geom_col() +
+  facet_wrap(~album_name)
+```
+```{r}
+queen %>%
+  group_by(album_name) %>%
+  ggplot(aes(x = track_name, y = energy, color = album_name)) +
+  geom_col() +
+  facet_wrap(~album_name)
+```
+
+
+
