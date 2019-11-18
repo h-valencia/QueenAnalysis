@@ -34,12 +34,30 @@ studio_albums <- c("Queen", "Queen II", "Sheer Heart Attack", "A Night At The Op
   
   
 queen <- queen %>%
-  filter(album_name %in% studio_albums)
+  filter(album_name %in% studio_albums) %>%
+  distinct(track_name, .keep_all = TRUE) %>%
+  filter(!str_detect(track_name, "Remastered")) %>%
+  filter(!str_detect(track_name, "Remix")) %>%
+  filter(!str_detect(track_name, "A Kind Of 'A Kind Of Magic'")) %>%
+  filter(!str_detect(track_name, "Doing Alright")) %>%
+  filter(!str_detect(track_name, "Dreamers Ball")) %>% 
+  filter(!str_detect(track_name, "Friends Will Be Friends Will Be Friends")) %>%
+  filter(!str_detect(track_id, "6WjY4oKPVQ9lZaq3aJ0H5v")) %>%
+  filter(!str_detect(track_name, "Good Old-Fashioned Lover Boy")) %>%
+  filter(!str_detect(track_name, "Is This The World We Created...?")) %>%
+  filter(!str_detect(track_id, "6hlfPqywCSczPKz1KMqfXU")) %>%
+  filter(!str_detect(track_id, "6nNVF7tBApaNEU5f9modse")) %>%
+  filter(!str_detect(track_name, "Modern Times Rock'n'Roll")) %>%
+  filter(!str_detect(track_id, "S3PFKogVtgrMTHeuxbJJBkI")) %>%
+  filter(!str_detect(track_name, "Son And Daughter")) %>%
+  filter(!str_detect(track_id, "69aswOmLtNPzStgpkzFQ2c	")) %>%
+  filter(!str_detect(track_name, "The Invisible Man - Extended Version")) %>%
+  filter(!str_detect(track_name, "Track 13"))
 ```
 
 ```{r}
-queen %>%
-  distinct(track_name)
+a <- queen %>%
+  select(track_name, album_name)
 ```
 
 ```{r}
@@ -53,6 +71,13 @@ queen %>%
 queen %>%
   group_by(album_name) %>%
   ggplot(aes(x = track_name, y = energy, color = album_name)) +
+  geom_col() +
+  facet_wrap(~album_name)
+```
+```{r}
+queen %>%
+  group_by(album_name) %>%
+  ggplot(aes(x = track_name, y = liveness, color = album_name)) +
   geom_col() +
   facet_wrap(~album_name)
 ```
