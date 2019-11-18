@@ -48,11 +48,11 @@ ui <- navbarPage("Navbar!",
                               mainPanel(
                                   plotOutput("distPlot")
                               ))    
-                 )
-                 )
+                 ),
                  tabPanel("About",
-                          h2("Summary")
-                 )
+                          h2("Summary"),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums.")
+                 ))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
