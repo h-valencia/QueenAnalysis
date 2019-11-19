@@ -1,0 +1,145 @@
+---
+title: "Milestone 8"
+author: "Hannah Valencia"
+date: "11/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
+library(infer)
+library(janitor)
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+lyrics <- read_csv("https://raw.githubusercontent.com/walkerkq/musiclyrics/master/billboard_lyrics_1964-2015.csv")
+```
+
+```{r}
+a <- lyrics %>%
+  mutate(Decade = Year - (Year %% 10)) %>%
+  filter(Rank == 1) %>%
+  group_by(Decade)
+```
+
+```{r}
+qtop <- lyrics %>%
+  filter(Artist == "queen") %>%
+  na.omit()
+```
+
+```{r}
+qkq <- qtop$Lyrics[[1]]
+docs <- Corpus(VectorSource(qkq))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=100, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+```{r}
+head(d, 15)
+barplot(d[1:15,]$freq, las = 2, names.arg = d[1:15,]$word,
+        col ="lightblue4", main ="Most frequent words",
+        ylab = "Word frequencies")
+```
+
+
+```{r}
+qbr <- qtop$Lyrics[[2]]
+docs <- Corpus(VectorSource(qbr))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+
+```{r}
+qymbf <- qtop$Lyrics[[3]]
+docs <- Corpus(VectorSource(qymbf))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+```{r}
+qstl <- qtop$Lyrics[[4]]
+docs <- Corpus(VectorSource(qstl))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+
+```{r}
+qcltcl <- qtop$Lyrics[[5]]
+docs <- Corpus(VectorSource(qcltcl))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+```{r}
+qaobtd <- qtop$Lyrics[[6]]
+docs <- Corpus(VectorSource(qaobtd))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
