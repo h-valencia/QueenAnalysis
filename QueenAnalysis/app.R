@@ -8,36 +8,33 @@
 #
 
 library(shiny)
+library(shinythemes)
 library(DT)
 
 # Define UI for application that draws a histogram
-ui <- navbarPage("Navbar!",
+ui <- navbarPage("Analysis of Queen",
                  tabPanel("Audio Features",
                           sidebarLayout(
                               sidebarPanel(
                                   helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's liveness"),
-                                  selectInput("feature", h3("Feature"),
-                                              choices = list("Danceability" = 1,
-                                                             "Energy" = 2,
-                                                             "Liveness" = 3,
-                                                             "Speechiness" = 4,
-                                                             "Accousticness" = 5)),
+                                  varSelectInput("feature", h3("Feature"), 
+                                                 queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
                                   selectInput("album", h3("Album"), 
-                                              choices = list("Queen" = 1, 
-                                                             "Queen II" = 2, 
-                                                             "Sheer Heart Attack" = 3, 
-                                                             "A Night At The Opera" = 4, 
-                                                             "A Day At The Races" = 5,
-                                                             "News Of The World" = 6,
-                                                             "Jazz" = 7,
-                                                             "The Game" = 8,
-                                                             "Flash Gordon" = 9,
-                                                             "Hot Space" = 10,
-                                                             "The Works" = 11,
-                                                             "A Kind Of Magic" = 12,
-                                                             "The Miracle" = 13, 
-                                                             "Innuendo" = 14,
-                                                             "Made In Heaven" = 15), selected = 1),
+                                              choices = list("Queen", 
+                                                             "Queen II", 
+                                                             "Sheer Heart Attack", 
+                                                             "A Night At The Opera", 
+                                                             "A Day At The Races",
+                                                             "News Of The World",
+                                                             "Jazz",
+                                                             "The Game",
+                                                             "Flash Gordon",
+                                                             "Hot Space",
+                                                             "The Works",
+                                                             "A Kind Of Magic",
+                                                             "The Miracle", 
+                                                             "Innuendo",
+                                                             "Made In Heaven"), selected = 1),
                                   p(strong("Danceability:"), "describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."),
                                   p(strong("Energy:"), "a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."),
                                   p(strong("Liveness:"), "detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."),
@@ -51,19 +48,24 @@ ui <- navbarPage("Navbar!",
                               ))    
                  ),
                  tabPanel("About",
-                          h2("Summary"),
-                          p("This project analyzes audio features of songs from Queen's 15 studio albums.")
+                          h2("Project Summary"),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference."),
+                          h2("About Me"), 
+                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science! Contact me at hvalencia@college.harvard.edu with any comments or questions.")
                  ))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-    qtable <- renderDataTable(queen %>% filter(album_name == input$album))
-    output$plot <- renderPlot(function() {
-        p <- ggplot(queen, aes(x = qtable$track_name, input$feature)) + 
-            geom_col() + 
+    observe({
+    qtable <- queen %>% filter(album_name == input$album)
+    
+    output$plot <- renderPlot(
+        ggplot(qtable, aes(x = track_name, !!input$feature)) + 
+            geom_col(fill = "mediumorchid") + 
             xlab(input$track_name) +
-            ylab(input$feature)
-        print(p)
+            ylab(input$feature) +
+            theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
     })
 }
 
