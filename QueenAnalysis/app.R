@@ -10,13 +10,17 @@
 library(shiny)
 library(shinythemes)
 library(DT)
+library(tidyverse)
+
+queen <- read_rds("queen.rds")
 
 # Define UI for application that draws a histogram
-ui <- navbarPage("Analysis of Queen",
+ui <- fluidPage(theme = shinytheme("cyborg"),
+                navbarPage("Analysis of Queen",
                  tabPanel("Audio Features",
                           sidebarLayout(
                               sidebarPanel(
-                                  helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's liveness"),
+                                  helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's audio features."),
                                   varSelectInput("feature", h3("Feature"), 
                                                  queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
                                   selectInput("album", h3("Album"), 
@@ -49,10 +53,10 @@ ui <- navbarPage("Analysis of Queen",
                  ),
                  tabPanel("About",
                           h2("Project Summary"),
-                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference."),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference website."),
                           h2("About Me"), 
-                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science! Contact me at hvalencia@college.harvard.edu with any comments or questions.")
-                 ))
+                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! Contact me at hvalencia@college.harvard.edu with any comments or questions.")
+                 )))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {

@@ -47,7 +47,7 @@ d <- data.frame(word = names(v),freq=v)
 
 set.seed(1234)
 wordcloud(words = d$word, freq = d$freq, min.freq = 1,
-          max.words=100, random.order=FALSE, rot.per=0.35, 
+          max.words=50, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 ```
 ```{r}
@@ -130,6 +130,7 @@ wordcloud(words = d$word, freq = d$freq, min.freq = 1,
           max.words=50, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 ```
+
 
 
 

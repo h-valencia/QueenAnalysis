@@ -53,6 +53,8 @@ queen <- queen %>%
   filter(!str_detect(track_id, "69aswOmLtNPzStgpkzFQ2c	")) %>%
   filter(!str_detect(track_name, "The Invisible Man - Extended Version")) %>%
   filter(!str_detect(track_name, "Track 13"))
+
+write_rds(queen, "QueenAnalysis/queen.rds")
 ```
 
 ```{r}
@@ -81,6 +83,39 @@ queen %>%
   geom_col() +
   facet_wrap(~album_name)
 ```
+
+```{r}
+queen %>%
+  group_by(album_name) %>%
+  arrange(album_release_year) %>%
+  count() %>%
+  
+  ggplot(aes(x = album_name, y = n)) +
+  geom_col() +
+  labs(x = "Album Name (from oldest album to most recent)", y = "Number of Tracks", title = "Number of Tracks Per Studio Album", subtitle = "How has the number of songs per album changed over the years?") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+queen %>%
+  group_by(mode_name, album_name) %>%
+  count() %>%
+  
+  ggplot(aes(x = album_name, y = n, fill = mode_name)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+```{r}
+queen %>%
+  group_by(mode_name, album_name) %>%
+  count() %>%
+  
+  ggplot(aes(x = mode_name, y = n, fill = album_name)) +
+  geom_col()
+```
+
+
+
 
 
 
