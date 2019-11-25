@@ -1,5 +1,5 @@
 ---
-title: "Spotify"
+title: "Queen"
 author: "Hannah Valencia"
 date: "11/16/2019"
 output: html_document
@@ -113,6 +113,29 @@ queen %>%
   ggplot(aes(x = mode_name, y = n, fill = album_name)) +
   geom_col()
 ```
+
+```{r}
+annotations <- data.frame(
+        xpos = c(-Inf,-Inf,Inf,Inf),
+        ypos =  c(-Inf, Inf,-Inf,Inf),
+        annotateText = c("Turbulant/Angry","Happy/Joyful"
+                        ,"Sad/Depressing","Chill/Peaceful"))
+
+queen %>%
+  ggplot(aes(x = valence, y = energy)) +
+  geom_point() +
+  geom_vline(xintercept = .5) +
+  geom_hline(yintercept = .5) +
+  geom_text(data = annotations, aes(x=xpos, y=ypos, hjust=c(-0.1,-0.1,1.1,1.1),vjust=c(-0.5,1.5,-0.5,1.5), label=annotateText))
+```
+
+
+
+
+
+
+
+
 
 
 
