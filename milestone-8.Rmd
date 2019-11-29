@@ -16,6 +16,7 @@ library(infer)
 library(janitor)
 library(ggplot2)
 library(spotifyr)
+library(ggrepel)
 library(tidyverse)
 ```
 
@@ -115,17 +116,22 @@ queen %>%
 ```
 
 ```{r}
-annotations <- data.frame(
-        xpos = c(-Inf,-Inf,Inf,Inf),
-        ypos =  c(-Inf, Inf,-Inf,Inf),
-        annotateText = c("Turbulant/Angry","Happy/Joyful"
-                        ,"Sad/Depressing","Chill/Peaceful"))
+queensent <- queen %>%
+  select(album_name, track_name, energy, valence)
+```
+
+
+```{r}
 queen %>%
-  ggplot(aes(x = valence, y = energy)) +
+  ggplot(aes(x = valence, y = energy, color = album_name)) +
   geom_point() +
   geom_vline(xintercept = .5) +
   geom_hline(yintercept = .5) +
-  geom_text(data = annotations, aes(x=xpos, y=ypos, hjust=c(-0.1,-0.1,1.1,1.1),vjust=c(-0.5,1.5,-0.5,1.5), label=annotateText))
+  annotate("text", x = .1, y = -0.05, label = "Sad/Depressing") +
+  annotate("text", x = .1, y = 1, label = "Turbulant/Angry") +
+  annotate("text", x = 0.9, y = -0.05, label = "Chill/Peaceful") +
+  annotate("text", x = 0.9, y = 1, label = "Happy/Joyful") +
+  labs(x = "Valence", y = "Energy", title = "Song Sentiment")
 ```
 
 

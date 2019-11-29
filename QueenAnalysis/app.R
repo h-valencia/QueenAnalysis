@@ -51,6 +51,17 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                   plotOutput("plot")
                               ))    
                  ),
+                 tabPanel("Song Sentiment",
+                          sidebarLayout(
+                              sidebarPanel(
+                                  p("Analyze the musical sentiment of songs from Queen's 15 studio albums."),
+                                  p("Hover over a data point to find out more information.")
+                              ),
+                              mainPanel(
+                                  plotOutput("plot2", hover = hoverOpts(id = "plot_hover", delay = 0)),
+                                  uiOutput("my_tooltip")
+                              )
+                          )),
                  tabPanel("About",
                           h2("Project Summary"),
                           p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference website."),
@@ -71,7 +82,36 @@ server <- function(input, output) {
             theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
     })
+    
+    output$plot2 <- renderPlot({
+        ggplot(queen, aes(x = valence, y = energy, color = album_name)) +
+            geom_point() +
+            geom_vline(xintercept = .5) +
+            geom_hline(yintercept = .5) +
+            annotate("text", x = .1, y = -0.05, label = "Sad/Depressing") +
+            annotate("text", x = .1, y = 1, label = "Turbulant/Angry") +
+            annotate("text", x = 0.9, y = -0.05, label = "Chill/Peaceful") +
+            annotate("text", x = 0.9, y = 1, label = "Happy/Joyful") +
+            labs(x = "Valence", y = "Energy", title = "Song Sentiment")
+        
+    })
+    
+    output$my_tooltip <- renderUI({
+        hover <- input$plot_hover 
+        y <- nearPoints(queen, input$plot_hover)
+        req(nrow(y) != 0)
+        verbatimTextOutput("vals")
+        
+        wellPanel(
+            p(HTML(paste0("Song:", y$track_name, "<br/>",
+                          "Album:", y$album_name, "<br/>",
+                          "Energy:", y$energy, "<br/>",
+                          "Valence:", y$valence)))
+        )
+    })
 }
+
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)
