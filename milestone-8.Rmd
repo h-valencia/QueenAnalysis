@@ -104,7 +104,8 @@ queen %>%
   
   ggplot(aes(x = album_name, y = n, fill = mode_name)) +
   geom_col() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Key of Songs by Album", x = "Album Name", y = "Number of Songs")
 ```
 ```{r}
 queen %>%
@@ -135,7 +136,23 @@ queen %>%
 ```
 
 
+```{r}
+queen %>%
+  mutate(duration_s = duration_ms/1000) %>%
+  mutate(duration_m = duration_s/60) %>%
+  ggplot(aes(x = track_name, y = duration_m, group = album_name, color = album_name)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
 
+```{r}
+ggplot(queen, aes(x = valence, y = energy, group = album_name, color = album_name)) +
+            geom_point() +
+            geom_smooth(method = "lm", se = FALSE) +
+            geom_vline(xintercept = .5) +
+            geom_hline(yintercept = .5) +
+            labs(x = "Valence", y = "Energy", title = "Song Sentiment")
+```
 
 
 

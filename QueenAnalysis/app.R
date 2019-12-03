@@ -10,6 +10,8 @@
 library(shiny)
 library(shinythemes)
 library(DT)
+library(plotly)
+library(ggpubr)
 library(tidyverse)
 
 queen <- read_rds("queen.rds")
@@ -52,16 +54,68 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                               ))    
                  ),
                  tabPanel("Song Sentiment",
+                    tabsetPanel(
+                        tabPanel("Discover",
                           sidebarLayout(
                               sidebarPanel(
                                   p("Analyze the musical sentiment of songs from Queen's 15 studio albums."),
+                                  p("Each quadrant corresponds to a different sentiment. According to Spotify, valence is a measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry). A song with high energy and high valence would be happy and joyful sounding, whereas a song with low valence and low energy would be described as sad or depressing."),
                                   p("Hover over a data point to find out more information.")
                               ),
                               mainPanel(
-                                  plotOutput("plot2", hover = hoverOpts(id = "plot_hover", delay = 0)),
-                                  uiOutput("my_tooltip")
+                                  plotlyOutput("plot2")
+                              ))),
+                        tabPanel("Statistical Analysis",
+                                 sidebarLayout(
+                                     sidebarPanel(
+                                        helpText("Choose an album to insert its regression line on the graph."),
+                                        checkboxGroupInput("albs", h3("Album"),
+                                                           choices = list("Queen", 
+                                                                          "Queen II", 
+                                                                          "Sheer Heart Attack", 
+                                                                          "A Night At The Opera", 
+                                                                          "A Day At The Races",
+                                                                          "News Of The World",
+                                                                          "Jazz",
+                                                                          "The Game",
+                                                                          "Flash Gordon",
+                                                                          "Hot Space",
+                                                                          "The Works",
+                                                                          "A Kind Of Magic",
+                                                                          "The Miracle", 
+                                                                          "Innuendo",
+                                                                          "Made In Heaven"), selected = "Queen")
+                                                 ),
+                                     
+                                     mainPanel(
+                                         plotOutput("plot3"),
+                                         h3("About This Graph"),
+                                         p("This graph looks at the relationship between energy and valence.")
+                                         )
+                                     )
+                                 )
+                             )
+                         ),
+                 
+                 
+                 tabPanel("Lyric Association",
+                          sidebarLayout(
+                              sidebarPanel(
+                                  sliderInput("words",
+                                              "Number of words: ",
+                                              min = 10,
+                                              max = 100,
+                                              value = 50),
+                              p("Create a lyrical word cloud to see the most frequently used words in each of Queen's six chart-topping songs."),
+                              p("Use the slider to select how many words appear in the graphic.")),
+                              
+                              mainPanel(
+                                  plotOutput("cloudPlot")
                               )
-                          )),
+                              
+                          )
+                     
+                 ),
                  tabPanel("About",
                           h2("Project Summary"),
                           p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference website."),
@@ -79,34 +133,52 @@ server <- function(input, output) {
             geom_col(fill = "mediumorchid") + 
             xlab(input$track_name) +
             ylab(input$feature) +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1))
+            theme(axis.text.x = element_text(angle = 45, hjust = 1, color = "white"),
+                panel.background = element_rect(fill = "black"),
+                plot.background = element_rect(fill = "black"),
+                panel.grid.major = element_blank(),
+                axis.text.y = element_text(color = "white"),
+                axis.title.x = element_text(color = "white"),
+                axis.title.y = element_text(color = "white"))
         )
     })
     
-    output$plot2 <- renderPlot({
-        ggplot(queen, aes(x = valence, y = energy, color = album_name)) +
-            geom_point() +
-            geom_vline(xintercept = .5) +
-            geom_hline(yintercept = .5) +
-            annotate("text", x = .1, y = -0.05, label = "Sad/Depressing") +
-            annotate("text", x = .1, y = 1, label = "Turbulant/Angry") +
-            annotate("text", x = 0.9, y = -0.05, label = "Chill/Peaceful") +
-            annotate("text", x = 0.9, y = 1, label = "Happy/Joyful") +
-            labs(x = "Valence", y = "Energy", title = "Song Sentiment")
+    
+    output$plot2 <- renderPlotly({
         
+       plot_ly(data = queen, x = ~valence, y = ~energy, color = ~album_name, colors = "Set1",
+               type = 'scatter', mode = 'markers',
+               hoverinfo = 'text',
+               text = ~paste("Song: ", track_name, "</br>",
+                             "</br> Album: ", album_name,
+                             "</br> Valence: ", valence,
+                             "</br> Energy: ", energy)) %>%
+            add_segments(x = 0.5, xend = 0.5, y = 0, yend = 1) %>%
+            add_segments(x = 0, xend = 1, y = 0.5, yend = 0.5) %>%
+            layout(title = 'Song Sentiment',
+                   xaxis = list(title = 'Valence',
+                                zeroline = TRUE,
+                                range = c(0, 1)),
+                   yaxis = list(title = 'Energy',
+                                range = c(0,1)),
+                   annotations = list(text = c("Turbulent/Angry", "Sad/Depressing", "Happy/Joyful", "Chill/Peaceful"),  
+                                      x = c(0.15, 0.15, 0.85, 0.85), 
+                                      y = c(1, 0.05, 1, 0.05),
+                                      showarrow=FALSE))
     })
     
-    output$my_tooltip <- renderUI({
-        hover <- input$plot_hover 
-        y <- nearPoints(queen, input$plot_hover)
-        req(nrow(y) != 0)
-        verbatimTextOutput("vals")
+    
+    observe({
+        qplot3 <- queen %>% filter(album_name %in% input$albs)
         
-        wellPanel(
-            p(HTML(paste0("Song:", y$track_name, "<br/>",
-                          "Album:", y$album_name, "<br/>",
-                          "Energy:", y$energy, "<br/>",
-                          "Valence:", y$valence)))
+    output$plot3 <- renderPlot(
+        ggplot(qplot3, aes(x = valence, y = energy, group = album_name, color = album_name)) +
+            geom_point() +
+            geom_smooth(method = "lm", se = FALSE) +
+            geom_vline(xintercept = .5) +
+            geom_hline(yintercept = .5) +
+            labs(x = "Valence", y = "Energy", title = "Song Sentiment", fill = "Album Name")+
+            stat_cor(label.x = .1)
         )
     })
 }
