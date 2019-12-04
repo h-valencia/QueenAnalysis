@@ -20,6 +20,8 @@ queen <- read_rds("queen.rds")
 ui <- fluidPage(theme = shinytheme("cyborg"),
                 navbarPage("Analysis of Queen",
                  tabPanel("Audio Features",
+                    tabsetPanel(
+                        tabPanel("Bar Plot",
                           sidebarLayout(
                               sidebarPanel(
                                   helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's audio features."),
@@ -47,12 +49,45 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                   p(strong("Speechiness:"), "detects the presence of spoken words in a track. The more exclusively speech-like the recording, the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech. Values below 0.33 most likely represent music and other non-speech-like tracks."),
                                   p(strong("Accousticness:"), "a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.")
                                   
-                                  )
-                              ,
+                                  ),
+                              
                               mainPanel(
                                   plotOutput("plot")
-                              ))    
-                 ),
+                                  )
+                              )
+                          ),
+                        
+                        tabPanel("Density Plot",
+                                 sidebarLayout(
+                                     sidebarPanel(
+                                         helpText("Choose out of Queen's 15 studio albums to obtain a density graph with the album's audio features."),
+                                         varSelectInput("featden", h3("Feature"), 
+                                                        queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
+                                         checkboxGroupInput("albden", h3("Album"), 
+                                                     choices = list("Queen", 
+                                                                    "Queen II", 
+                                                                    "Sheer Heart Attack", 
+                                                                    "A Night At The Opera", 
+                                                                    "A Day At The Races",
+                                                                    "News Of The World",
+                                                                    "Jazz",
+                                                                    "The Game",
+                                                                    "Flash Gordon",
+                                                                    "Hot Space",
+                                                                    "The Works",
+                                                                    "A Kind Of Magic",
+                                                                    "The Miracle", 
+                                                                    "Innuendo",
+                                                                    "Made In Heaven"), selected = "Queen")
+                                     ),
+                                     mainPanel(
+                                         plotOutput("denplot")
+                                     )
+                                 )
+                            )
+                        )
+                    ),
+                    
                  tabPanel("Song Sentiment",
                     tabsetPanel(
                         tabPanel("Discover",
@@ -64,7 +99,10 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                               ),
                               mainPanel(
                                   plotlyOutput("plot2")
-                              ))),
+                                  )
+                              )
+                          ),
+                        
                         tabPanel("Statistical Analysis",
                                  sidebarLayout(
                                      sidebarPanel(
@@ -90,7 +128,7 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                      mainPanel(
                                          plotOutput("plot3"),
                                          h3("About This Graph"),
-                                         p("This graph looks at the relationship between energy and valence.")
+                                         p("This graph looks at the relationship between energy and valence. With each album selected, the R-squared value appears in the corresponding color to show the percentage of the album's energy that explains the variation in valence. The lines that appear are linear regressions of valence on energy. The slope shows how an increase in the valence (or positivity) of a song corresponds to an increase in the energy. A positive slope would mean that on the album, songs tend to be sad or happy, while a negative slope would indicate the songs are angry or peaceful.")
                                          )
                                      )
                                  )
@@ -98,27 +136,9 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                          ),
                  
                  
-                 tabPanel("Lyric Association",
-                          sidebarLayout(
-                              sidebarPanel(
-                                  sliderInput("words",
-                                              "Number of words: ",
-                                              min = 10,
-                                              max = 100,
-                                              value = 50),
-                              p("Create a lyrical word cloud to see the most frequently used words in each of Queen's six chart-topping songs."),
-                              p("Use the slider to select how many words appear in the graphic.")),
-                              
-                              mainPanel(
-                                  plotOutput("cloudPlot")
-                              )
-                              
-                          )
-                     
-                 ),
                  tabPanel("About",
                           h2("Project Summary"),
-                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The data was sourced from Spotify, specifically from their Web API Reference website."),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The various tabs explore various songs' danceability, energy, valence, loudness, acousticness, speechiness, and sentiment. The data was sourced from Spotify, specifically from their Web API Reference website. Some of the data was also sourced from kaggle, which gave a dataset with the lyrics to Queen's top hits."),
                           h2("About Me"), 
                           p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! Contact me at hvalencia@college.harvard.edu with any comments or questions.")
                  )))
@@ -140,6 +160,20 @@ server <- function(input, output) {
                 axis.text.y = element_text(color = "white"),
                 axis.title.x = element_text(color = "white"),
                 axis.title.y = element_text(color = "white"))
+        )
+    })
+    
+    
+    observe({
+        qdenplot <- queen %>% filter(album_name %in% input$albden)
+        
+        output$denplot <- renderPlot(
+            ggplot(qdenplot, aes(!!input$featden, group = album_name, fill = album_name, text = album_name)) +
+                geom_density(alpha=0.7, color=NA)+
+                xlab(input$featden) +
+                ylab("Density") +
+                guides(fill=guide_legend(title="Album"))+
+                theme_minimal()
         )
     })
     
