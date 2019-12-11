@@ -99,6 +99,16 @@ queen %>%
 
 ```{r}
 queen %>%
+  group_by(album_name) %>%
+  ggplot(aes(x = album_name, y = (duration_ms/60000), fill = album_name)) +
+  geom_point()
+
+```
+
+
+
+```{r}
+queen %>%
   group_by(mode_name, album_name) %>%
   count() %>%
   
@@ -107,6 +117,53 @@ queen %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(title = "Key of Songs by Album", x = "Album Name", y = "Number of Songs")
 ```
+
+```{r}
+queenkey <- queen %>%
+  select(album_name, key_name) %>%
+  group_by(album_name, key_name) %>%
+  mutate(n=n()) %>%
+  unique() %>%
+  group_by(key_name) %>%
+  mutate(total=sum(n)) %>%
+  mutate(percent=round((n/total)*100))
+```
+
+```{r}
+ggplot(queenkey, aes(x = key_name, fill = album_name, y = n, 
+                                text = paste("Number of Songs: ", n, "<br>",
+                                            "Percent Songs in Key: ", percent, "%"))) +
+  geom_bar(position="fill", width=0.5, stat = "identity") +
+  labs(x="Key", y="Percent of Songs") +
+  guides(fill = guide_legend(title = "Album")) +
+  theme_minimal() +
+  ggtitle("Musical Key Percentage by Album")
+```
+
+
+
+```{r}
+ggplot(queenkey, aes(x = key_name, fill = album_name, y = n, 
+                                text = paste("Number of Songs: ", n, "<br>",
+                                            "Percent Songs in Key: ", percent, "%"))) +
+  geom_bar(width=0.5, stat = "identity") +
+  labs(x="Key", y="Number of Songs") +
+  guides(fill=guide_legend(title="Album")) +
+  theme_minimal() +
+  ggtitle("Musical Key Makeup by Album")
+```
+
+
+
+```{r}
+ggplotly(viz2, tooltip=c("text"))
+```
+
+
+
+
+
+
 ```{r}
 queen %>%
   group_by(mode_name, album_name) %>%

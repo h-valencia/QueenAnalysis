@@ -15,6 +15,7 @@ library(RColorBrewer)
 library(infer)
 library(janitor)
 library(ggplot2)
+library(memoise)
 library(tidyverse)
 ```
 
@@ -33,8 +34,54 @@ a <- lyrics %>%
 ```{r}
 qtop <- lyrics %>%
   filter(Artist == "queen") %>%
-  na.omit()
+  na.omit() %>%
+  mutate(Song = c("Killer Queen", 
+                   "Bohemian Rhapsody", 
+                   "You're My Best Friend", 
+                   "Somebody To Love",
+                   "Crazy Little Thing Called Love",
+                   "Another One Bites The Dust",
+                   "Bohemian Rhapsody")) %>%
+  filter(!Year == 1992) %>%
+  select(Rank, Song, Lyrics)
 ```
+
+
+```{r}
+songs <<- list("Killer Queen", 
+                   "Bohemian Rhapsody", 
+                   "You're My Best Friend", 
+                   "Somebody To Love",
+                   "Crazy Little Thing Called Love",
+                   "Another One Bites The Dust",
+                   "Bohemian Rhapsody")
+
+# Using "memoise" to automatically cache the results
+getTermMatrix <- memoise(function(Song) {
+  # Careful not to let just any name slip in here; a
+  # malicious user could manipulate this value.
+  if (!(Song %in% songs))
+    stop("Unknown Song")
+
+  text <- readLines(sprintf("./%s.txt.gz", Song),
+    encoding="UTF-8")
+
+  myCorpus = Corpus(VectorSource(text))
+  myCorpus = tm_map(myCorpus, content_transformer(tolower))
+  myCorpus = tm_map(myCorpus, removePunctuation)
+  myCorpus = tm_map(myCorpus, removeNumbers)
+  myCorpus = tm_map(myCorpus, removeWords,
+         c(stopwords("SMART"), "thy", "thou", "thee", "the", "and", "but"))
+
+  myDTM = TermDocumentMatrix(myCorpus,
+              control = list(minWordLength = 1))
+  
+  m = as.matrix(myDTM)
+  
+  sort(rowSums(m), decreasing = TRUE)
+})
+```
+
 
 ```{r}
 qkq <- qtop$Lyrics[[1]]
@@ -50,6 +97,7 @@ wordcloud(words = d$word, freq = d$freq, min.freq = 1,
           max.words=50, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 ```
+
 ```{r}
 head(d, 15)
 barplot(d[1:15,]$freq, las = 2, names.arg = d[1:15,]$word,
@@ -72,6 +120,24 @@ wordcloud(words = d$word, freq = d$freq, min.freq = 1,
           max.words=50, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 ```
+```{r}
+qbr1 <- qtop %>%
+  filter(Song == "Bohemian Rhapsody") %>%
+  select(Lyrics)
+docs <- Corpus(VectorSource(qbr1))
+
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+set.seed(1234)
+wc <- wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+wc
+```
+
 
 ```{r}
 qymbf <- qtop$Lyrics[[3]]
