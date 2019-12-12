@@ -111,12 +111,21 @@ queen %>%
 queen %>%
   group_by(mode_name, album_name) %>%
   count() %>%
-  
   ggplot(aes(x = album_name, y = n, fill = mode_name)) +
   geom_col() +
+  scale_fill_manual(values=c("orchid1", "darkorchid4")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Key of Songs by Album", x = "Album Name", y = "Number of Songs")
+  labs(title = "Key of Songs by Album", x = "Album Name", y = "Number of Songs", fill = "Mode")
 ```
+
+```{r}
+queen %>%
+  group_by(album_name) %>%
+  select(album_name, album_release_year) %>%
+  distinct(album_name, .keep_all = TRUE) %>%
+  arrange(desc(album_release_year))
+```
+
 
 ```{r}
 queenkey <- queen %>%

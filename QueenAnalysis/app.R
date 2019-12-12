@@ -23,26 +23,9 @@ library(tidyverse)
 
 queen <- read_rds("queen.rds")
 lyrics <- read_csv("https://raw.githubusercontent.com/walkerkq/musiclyrics/master/billboard_lyrics_1964-2015.csv")
-qtop <- lyrics %>%
-    filter(Artist == "queen") %>%
-    na.omit() %>%
-    mutate(Song = c("Killer Queen", 
-                    "Bohemian Rhapsody", 
-                    "You're My Best Friend", 
-                    "Somebody To Love",
-                    "Crazy Little Thing Called Love",
-                    "Another One Bites The Dust",
-                    "Bohemian Rhapsody")) %>%
-    filter(!Year == 1992) %>%
-    select(Rank, Song, Lyrics)
-queenkey <- queen %>%
-    select(album_name, key_name) %>%
-    group_by(album_name, key_name) %>%
-    mutate(n=n()) %>%
-    unique() %>%
-    group_by(key_name) %>%
-    mutate(total=sum(n)) %>%
-    mutate(percent=round((n/total)*100))
+qtop <- read_rds("qtop.rds")
+queenkey <- read_rds("queenkey.rds")
+lexical_diversity <- read_rds("lexical_diversity.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(theme = shinytheme("cyborg"),
@@ -133,7 +116,9 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                   p("Hover over a data point to find out more information.")
                               ),
                               mainPanel(
-                                  plotlyOutput("plot2")
+                                  plotlyOutput("plot2"),
+                                  h4("About This Graph", style = "color:mediumorchid"),
+                                  p("This graph shows a point for each of Queen's songs that appear on their 15 studio albums. Between the quadrants, there is not much of a pattern of where the songs fall, as they are scattered fairly evenly between the four moods. There are noticably less songs in the chill/peaceful quadrant, and there are not many songs that fall in the extremeties of the quadrants (the corners). It would also be helpful to note that this graph does not analyze the senitment of the songs lyrics, so some songs may not actually correspond with their corresponding quadrant.")
                                   )
                               )
                           ),
@@ -233,7 +218,7 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                         )
                       ),
                         
-                        tabPanel("Songs Duration",
+                        tabPanel("Song Duration",
                             h3("Song Duration by Album", style = "color:mediumorchid"),
                               sidebarLayout(
                                   sidebarPanel(
@@ -241,19 +226,47 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                        
                                  mainPanel(
                                      plotlyOutput("durationplot"),
-                                     h5("Notes About This Graph", style = "color:mediumorchid"),
+                                     h4("About This Graph", style = "color:mediumorchid"),
                                      p("In this graph, you can see that there are many points that hover around the 4-5 minute mark for duration. However, it should be noted that the fitted scale is so large because of the album 'Made In Heaven'. Within this album, there are two songs that are either extremely long or extemely short, with 'Yeah' coming in at 4 seconds long and 'Untitled' coming in at 22 minutes and 33 seconds.")
                                 )
                             )
+                        ),
+                      
+                      tabPanel("Lexical Diversity",
+                        h3("Lexical Diversity by Album", style = "color:mediumorchid"),
+                            sidebarLayout(
+                                sidebarPanel(
+                                    helpText("Lexical Diversity is a measure of the different number of words used in a song or text. A high lexical diversity means that very few words are repeated throughout, while a low lexical diversity refers to a song that is repetitive."),
+                                    helpText("Hover over a point on the scatter plot to retrieve information about the corresponding song.")),
+                                
+                                    mainPanel(
+                                        plotlyOutput("lexdivplot"),
+                                        h4("About This Graph", style = "color:mediumorchid"),
+                                        h6("The song 'Yeah' only has one word and therefore has a lexical diversity of 1.0. Also, lyrics to all of Queen's songs could not be retreived, therefore this graph is a sampling of some of their songs, but some may be missing. The least lexically diverse songs are ", a("Get Down, Make Love", href = "https://genius.com/Queen-get-down-make-love-lyrics"),", ", a("Let Me Live", href =  "https://genius.com/Queen-let-me-live-lyrics"),", and ", a("Mustapha", href = "https://genius.com/Queen-mustapha-lyrics"),", all of which have fairly repetitive lyrics. Click on these song titles to see the lyrics to each and observe the repetition.", style = "color:gray")
+                                    )
+                                )
+                            ),
+                      
+                      tabPanel("Song Keys",
+                            h3("Key of Songs by Album", style = "color:mediumorchid"),
+                                sidebarLayout(
+                                    sidebarPanel(
+                                        helpText("Observe the ratio of major and minor songs in each album.")),
+                                         mainPanel(
+                                             plotOutput("keysongplot"),
+                                             h4("About This Graph", style = "color:mediumorchid"),
+                                             p("Most songs are written in the major key, as they sound brighter and more cheerful. This graph shows that for most of Queen's albums, the majority of the album's songs are in the major key. However, the last two albums that Freddie Mercury worked on and was alive for, 'Innuendo' and 'The Miracle', noticably have more songs in the minor key. Songs in the minor key often sound darker and sadder. Both of these albums were released after Mercury's HIV diagnosis, which one could speculate is why there are more sad songs.")
+                                    )
+                                )
+                            )
                         )
-                    )
-                ),
+                    ),
                  
                  tabPanel("About",
                           h3("Project Summary", style = "color:mediumorchid"),
-                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The various tabs explore various songs' danceability, energy, valence, loudness, acousticness, speechiness, and sentiment. The data was sourced from Spotify, specifically from their Web API Reference website. Some of the data was also sourced from kaggle, which gave a dataset with the lyrics to Queen's top hits."),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The various tabs look at various information gathered about the songs and albums, from their audio features to the senitment they give off. Some of the data was sourced from Spotify, specifically from their ", a("Web API Reference website", href = "https://developer.spotify.com/documentation/web-api/"),". Other data, such as the lyrics and features of Queen's chart-topping songs, was sourced from GitHub user walkerq and can be found ", a("here", href = "https://github.com/walkerkq/musiclyrics"),". I also scraped lyrics from ", a("Genius API for developers", href = "https://docs.genius.com/"),"."),
                           h3("About Me", style = "color:mediumorchid"), 
-                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! Contact me at hvalencia@college.harvard.edu with any comments or questions.")
+                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! I also love Queen, which is why I decided to create this project. Feel free to contact me at hvalencia@college.harvard.edu with any comments or questions.")
                  )))
 
 # Define server logic required to draw a histogram
@@ -266,13 +279,8 @@ server <- function(input, output) {
             geom_col(fill = "mediumorchid") + 
             xlab(input$track_name) +
             ylab(input$feature) +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1, color = "white"),
-                panel.background = element_rect(fill = "black"),
-                plot.background = element_rect(fill = "black"),
-                panel.grid.major = element_blank(),
-                axis.text.y = element_text(color = "white"),
-                axis.title.x = element_text(color = "white"),
-                axis.title.y = element_text(color = "white"))
+            labs(title = input$feature) +
+            theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
     })
     
@@ -380,6 +388,30 @@ server <- function(input, output) {
                yaxis = list(title = "Duration (in Minutes)"))
     })
     
+    
+    output$lexdivplot <- renderPlotly({
+        plot_ly(data = lexical_diversity, x = ~album_name, y = ~lex_div, color = ~album_name, type = "scatter",
+                hoverinfo = 'text',
+                text = ~paste("Song: ", track_name, "</br>",
+                              "</br> Album: ", album_name,
+                              "</br> Lexical Diversity ", lex_div)) %>%
+            layout(title = "Lexical Diversity by Album",
+                   xaxis = list(title = "Album Name", tickangle = 300),
+                   yaxis = list(title = "Lexical Diversity"))
+    })
+    
+    
+    observe({
+        keysong <- queen %>% group_by(mode_name, album_name) %>% count()
+        
+        output$keysongplot <- renderPlot(
+            ggplot(keysong, aes(x = album_name, y = n, fill = mode_name)) +
+                geom_col() +
+                scale_fill_manual(values=c("orchid1", "darkorchid4")) +
+                theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+                labs(title = "Key of Songs by Album", x = "Album Name", y = "Number of Songs", fill = "Mode")
+        )
+    })
     
 }
 

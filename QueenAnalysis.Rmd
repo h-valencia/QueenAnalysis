@@ -1,0 +1,105 @@
+---
+title: "QueenAnalysis"
+author: "Hannah Valencia"
+date: "12/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
+library(infer)
+library(janitor)
+library(ggplot2)
+library(memoise)
+library(spotifyr)
+library(ggrepel)
+library(tidyverse)
+```
+
+```{r}
+lyrics <- read_csv("https://raw.githubusercontent.com/walkerkq/musiclyrics/master/billboard_lyrics_1964-2015.csv")
+```
+
+```{r}
+qtop <- lyrics %>%
+  filter(Artist == "queen") %>%
+  na.omit() %>%
+  mutate(Song = c("Killer Queen", 
+                   "Bohemian Rhapsody", 
+                   "You're My Best Friend", 
+                   "Somebody To Love",
+                   "Crazy Little Thing Called Love",
+                   "Another One Bites The Dust",
+                   "Bohemian Rhapsody")) %>%
+  filter(!Year == 1992) %>%
+  select(Rank, Song, Lyrics)
+
+write_rds(qtop, "QueenAnalysis/qtop.rds")
+```
+
+```{r}
+Sys.setenv(SPOTIFY_CLIENT_ID = "1ce7b32e4d444e1d9df600fd87f33350")  
+Sys.setenv(SPOTIFY_CLIENT_SECRET = "6709043e71214357892e9c271fe67625")  
+access_token <- get_spotify_access_token()
+```
+
+```{r}
+queen <- get_artist_audio_features("queen")
+```
+
+```{r}
+studio_albums <- c("Queen", "Queen II", "Sheer Heart Attack", "A Night At The Opera", "A Day At The Races", "News Of The World", "Jazz", "The Game", "Flash Gordon", "Hot Space", "The Works", "A Kind Of Magic", "The Miracle", "Innuendo", "Made In Heaven")
+  
+  
+queen <- queen %>%
+  filter(album_name %in% studio_albums) %>%
+  distinct(track_name, .keep_all = TRUE) %>%
+  filter(!str_detect(track_name, "Remastered")) %>%
+  filter(!str_detect(track_name, "Remix")) %>%
+  filter(!str_detect(track_name, "A Kind Of 'A Kind Of Magic'")) %>%
+  filter(!str_detect(track_name, "Doing Alright")) %>%
+  filter(!str_detect(track_name, "Dreamers Ball")) %>% 
+  filter(!str_detect(track_name, "Friends Will Be Friends Will Be Friends")) %>%
+  filter(!str_detect(track_id, "6WjY4oKPVQ9lZaq3aJ0H5v")) %>%
+  filter(!str_detect(track_name, "Good Old-Fashioned Lover Boy")) %>%
+  filter(!str_detect(track_name, "Is This The World We Created...?")) %>%
+  filter(!str_detect(track_id, "6hlfPqywCSczPKz1KMqfXU")) %>%
+  filter(!str_detect(track_id, "6nNVF7tBApaNEU5f9modse")) %>%
+  filter(!str_detect(track_name, "Modern Times Rock'n'Roll")) %>%
+  filter(!str_detect(track_id, "S3PFKogVtgrMTHeuxbJJBkI")) %>%
+  filter(!str_detect(track_name, "Son And Daughter")) %>%
+  filter(!str_detect(track_id, "69aswOmLtNPzStgpkzFQ2c	")) %>%
+  filter(!str_detect(track_name, "The Invisible Man - Extended Version")) %>%
+  filter(!str_detect(track_name, "Track 13"))
+
+write_rds(queen, "QueenAnalysis/queen.rds")
+```
+
+```{r}
+queenkey <- queen %>%
+  select(album_name, key_name) %>%
+  group_by(album_name, key_name) %>%
+  mutate(n=n()) %>%
+  unique() %>%
+  group_by(key_name) %>%
+  mutate(total=sum(n)) %>%
+  mutate(percent=round((n/total)*100))
+
+write_rds(queenkey, "QueenAnalysis/queenkey.rds")
+```
+
+
+
+
+
+
+
+
+
+
+
