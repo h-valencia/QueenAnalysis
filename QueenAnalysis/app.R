@@ -395,8 +395,15 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                             I also scraped lyrics from ", a("Genius API for developers", href = "https://docs.genius.com/"),".
                             For my lexical diversity graph, I looked at a previous project about Taylor Swift that I found on ", a("GitHub", href = "https://github.com/simranvatsa/tayloR/blob/master/tayloR_final.R#L78"),"."),
                           h3("About Me", style = "color:mediumorchid"), 
-                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! I also love Queen, which is why I decided to create this project. Feel free to contact me at hvalencia@college.harvard.edu with any comments or questions.")
-                 )))
+                          p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. 
+                            I am concentrating in Economics but I enjoy data science immensely! 
+                            I also love Queen, which is why I decided to create this project. 
+                            Feel free to contact me at hvalencia@college.harvard.edu with any comments or questions."),
+                          h6("Video Walkthrough", style = "color:mediumorchid"),
+                          p("For a video walkthrough about this project, click ", a("here", href = "https://youtu.be/125lsNmOZ6s"),)
+                 )
+               )
+             )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
