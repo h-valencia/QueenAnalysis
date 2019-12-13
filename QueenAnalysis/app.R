@@ -84,14 +84,18 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                   p(strong("Energy:"), "a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."),
                                   p(strong("Liveness:"), "detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."),
                                   p(strong("Speechiness:"), "detects the presence of spoken words in a track. The more exclusively speech-like the recording, the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech. Values below 0.33 most likely represent music and other non-speech-like tracks."),
-                                  p(strong("Accousticness:"), "a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.")
+                                  p(strong("Acousticness:"), "a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.")
                                   
                                   ),
                               
                               # Added a plot for the main panel.
                                 
                               mainPanel(
-                                  plotOutput("plot")
+                                  plotOutput("plot"),
+                                  h3("About This Graph", style = "color:mediumorchid"),
+                                  p("Through interacting with this graph, one can observe things such as 'Hot Space' being the most danceable album collectively, or 'The Miracle' and 'Queen' having the highest energies.
+                                    One could also notice the extremely low acousticness in 'A Kind Of Magic', aside from the track 'Forever'.
+                                    There are many things to explore and observe within this graph, see what you can find.")
                                   )
                               )
                           ),
@@ -136,7 +140,12 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                      # Added a main panel with density plot output.
                                      
                                      mainPanel(
-                                         plotOutput("denplot")
+                                         plotOutput("denplot"),
+                                         h3("About This Graph", style = "color:mediumorchid"),
+                                         p("This graph shows the distributions of various audio features by album.
+                                           It can be noted that features such as liveness and speechiness all fall very strongly to the left, indicating that they do not have high values.
+                                           Since the albums being analyzed are Queen's 15 studio produced albums, with no live performances, it is reasonable and expected that the liveness value would be low.
+                                           The low speechiness refers to the songs not having a lot of spoken words, which also makes sense as the majority of their songs are entirely sung.")
                                      )
                                  )
                             )
@@ -210,7 +219,12 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                      mainPanel(
                                          plotOutput("plot3"),
                                          h4("About This Graph", style = "color:mediumorchid"),
-                                         p("This graph looks at the relationship between energy and valence. With each album selected, the R-squared value appears in the corresponding color to show the percentage of the album's energy that explains the variation in valence. The lines that appear are linear regressions of valence on energy. The slope shows how an increase in the valence (or positivity) of a song corresponds to an increase in the energy. A positive slope would mean that on the album, songs tend to be sad or happy, while a negative slope would indicate the songs are angry or peaceful.")
+                                         p("This graph looks at the relationship between energy and valence. 
+                                           With each album selected, the R-squared value appears in the corresponding color to show the percentage of the album's energy that explains the variation in valence. 
+                                           The lines that appear are linear regressions of valence on energy. 
+                                           The slope shows how an increase in the valence (or positivity) of a song corresponds to an increase in the energy. 
+                                           A positive slope would mean that on the album, songs tend to be sad or happy, while a negative slope would indicate the songs are angry or peaceful.
+                                           The R values fall between -0.07 and 0.85, showing a range of linear associations by album.")
                                          )
                                      )
                                  )
@@ -374,7 +388,12 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                 
                  tabPanel("About",
                           h3("Project Summary", style = "color:mediumorchid"),
-                          p("This project analyzes audio features of songs from Queen's 15 studio albums. The various tabs look at various information gathered about the songs and albums, from their audio features to the senitment they give off. Some of the data was sourced from Spotify, specifically from their ", a("Web API Reference website", href = "https://developer.spotify.com/documentation/web-api/"),". Other data, such as the lyrics and features of Queen's chart-topping songs, was sourced from GitHub user walkerq and can be found ", a("here", href = "https://github.com/walkerkq/musiclyrics"),". I also scraped lyrics from ", a("Genius API for developers", href = "https://docs.genius.com/"),"."),
+                          p("This project analyzes audio features of songs from Queen's 15 studio albums. 
+                            The various tabs look at various information gathered about the songs and albums, from their audio features to the senitment they give off. 
+                            Some of the data was sourced from Spotify, specifically from their ", a("Web API Reference website", href = "https://developer.spotify.com/documentation/web-api/"),". 
+                            Other data, such as the lyrics and features of Queen's chart-topping songs, was sourced from GitHub user walkerq and can be found ", a("here", href = "https://github.com/walkerkq/musiclyrics"),". 
+                            I also scraped lyrics from ", a("Genius API for developers", href = "https://docs.genius.com/"),".
+                            For my lexical diversity graph, I looked at a previous project about Taylor Swift that I found on ", a("GitHub", href = "https://github.com/simranvatsa/tayloR/blob/master/tayloR_final.R#L78"),"."),
                           h3("About Me", style = "color:mediumorchid"), 
                           p("My name is Hannah Valencia and I am a sophomore in the Gov 1005 class at Harvard University. I am concentrating in Economics but I enjoy data science immensely! I also love Queen, which is why I decided to create this project. Feel free to contact me at hvalencia@college.harvard.edu with any comments or questions.")
                  )))
@@ -464,11 +483,18 @@ server <- function(input, output) {
     })
     
     
-    # 
+    # Used the observe function to filter the data prior to it being used in the graph.
+    # Filtered the data by the albums that are selected from the checkbox list.
     
     observe({
         qplot3 <- queen %>% filter(album_name %in% input$albs)
-        
+    
+    # Set the plot output to render a ggplot.
+    # Set the x and y aesthetics, then grouped and colored the points by album.
+    # Used geom_smooth to add regression lines to the graph, but got rid of the standard error display.
+    # Added lines to create the quadrants.
+    # Used stat_corr to include the regression lines' correlation coefficient and p-value on the graph.
+            
     output$plot3 <- renderPlot(
         ggplot(qplot3, aes(x = valence, y = energy, group = album_name, color = album_name)) +
             geom_point() +
@@ -480,13 +506,21 @@ server <- function(input, output) {
         )
     })
     
-    
+   
+    # Used the observe function to filter the data prior to its use in the plot.
+    # Filtered the songs by the song selected by the user.
+     
     observe({
         
         qcloud <- qtop %>%
             filter(Song == input$selection) %>%
             select(Lyrics)
+        
+        # Created a corpus of the text of the song lyrics from the data frame.
+        
         docs <- Corpus(VectorSource(qcloud))
+        
+        # Turned the full lyrics into a matrix in which the frequency of the words is counted.
         
         dtm <- TermDocumentMatrix(docs)
         m <- as.matrix(dtm)
@@ -495,16 +529,24 @@ server <- function(input, output) {
         
         set.seed(1234)
         
+        # Made the output of the plot a wordcloud.
+        # Set the number of words and frequencies, then changed the number of words to the slider input.
+        
         output$cloudPlot <- renderPlot(
             wordcloud(words = d$word, freq = d$freq, min.freq = 1,
                       max.words=input$max, random.order=FALSE, rot.per=0.35, 
                   colors=brewer.pal(8, "Dark2")))
     })
     
+    # Used the observe function to filter the dataframe for only the albums chosen from the checkbox input.
+    
     observe({
         qkey <- queenkey %>% filter(album_name %in% input$keyalb)
         
-        keyplot1 <- ggplot(qkey, aes(x = key_name, fill = album_name, y = n, 
+        # Created a ggplot object with x and y aesthetics, as well as a fill color by album.
+        # Made a bar graph and added labels and titles.
+        
+        keyplot1 <- ggplot(qkey, aes(x = key_name, y = n, fill = album_name, 
                              text = paste("Number of Songs: ", n, "<br>",
                                           "Album: ", album_name))) +
             geom_bar(width=0.5, stat = "identity") +
@@ -513,12 +555,20 @@ server <- function(input, output) {
             theme_minimal() +
             ggtitle("Musical Key Makeup by Album")
         
+        # Set the output of the plot to a plotly.
+        # Used ggplotly to change the ggplot generated above into a plotly with a hover over text object.
+        
         output$keyplot <- renderPlotly({
             ggplotly(keyplot1, tooltip=c("text"))
             
         })
     })
-    
+   
+    # Set the output of the plot to create plotly object.
+    # Used plot_ly to create the plotly scatter plot.
+    # Set the x and y variables. Divided the duration_ms variable by 60,000 to change it from milliseconds to minutes.
+    # Added a tooltip for hovering over the points. When hovering over, it will give the point's corresponding song, album, and duration in seconds and minutes.
+     
     output$durationplot <- renderPlotly({
         plot_ly(data = queen, x = ~album_name, y = ~(duration_ms/60000), color = ~album_name, type = "scatter",
                 hoverinfo = 'text',
@@ -531,6 +581,10 @@ server <- function(input, output) {
                yaxis = list(title = "Duration (in Minutes)"))
     })
     
+    # Set the plot output to create a plotly.
+    # Used plot_ly to create the scatter plot. Set the x and y variables and colored the points by album.
+    # Added a tooltip for hovering over a point. It tells the point's corresponding song, album, and lexical diversity.
+    # Used layout to set the aesthetics of the graph.
     
     output$lexdivplot <- renderPlotly({
         plot_ly(data = lexical_diversity, x = ~album_name, y = ~lex_div, color = ~album_name, type = "scatter",
@@ -543,9 +597,15 @@ server <- function(input, output) {
                    yaxis = list(title = "Lexical Diversity"))
     })
     
+    # Used the observe command to group the data ana create counts prior to its use in the graph.
     
     observe({
         keysong <- queen %>% group_by(mode_name, album_name) %>% count()
+        
+        # Set the plot output to create a ggplot.
+        # Set the x and y aesthetics, and filled the columns of the graph by mode (major or minor).
+        # Manually set the colors of the columns for aesthetic appeal.
+        # Changed the angle of the text and adjusted the labels.
         
         output$keysongplot <- renderPlot(
             ggplot(keysong, aes(x = album_name, y = n, fill = mode_name)) +

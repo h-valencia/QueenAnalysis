@@ -13,8 +13,11 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE)
 library(tm)
 library(SnowballC)
 library(wordcloud)
+library(tidytext)
 library(RColorBrewer)
 library(infer)
+library(httr)
+library(lubridate)
 library(janitor)
 library(ggplot2)
 library(memoise)
@@ -132,6 +135,10 @@ write_rds(queenkey, "QueenAnalysis/queenkey.rds")
 
 
 ```{r}
+
+# Set the code provided by genius to an object for ease of use later on.
+
+genius_token <- "nnHsafVDSIACw4yKudgoprN8F_FQxoSZWA915OsodP_S56L6QiJQ0LAunF3Hc288"
 
 # Created a function called genius_get_artis that filters through the Genius website and data and retrieves the desired artist.
 # Set the baseURL to search through the data.
