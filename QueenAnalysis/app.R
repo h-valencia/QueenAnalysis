@@ -115,6 +115,7 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                          
                                          varSelectInput("featden", h3("Feature"), 
                                                         queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
+                                         
                                          checkboxGroupInput("albden", h3("Album"), 
                                                      choices = list("Queen", 
                                                                     "Queen II", 
@@ -130,8 +131,10 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                                                     "A Kind Of Magic",
                                                                     "The Miracle", 
                                                                     "Innuendo",
-                                                                    "Made In Heaven"), selected = "Queen")
-                                     ),
+                                                                    "Made In Heaven"), selected = "Queen")),
+                                     
+                                     # Added a main panel with density plot output.
+                                     
                                      mainPanel(
                                          plotOutput("denplot")
                                      )
@@ -139,18 +142,31 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                             )
                         )
                     ),
-                    
+                 
+                # Created a new tab called "Song Sentiment".
+                       
                  tabPanel("Song Sentiment",
                     tabsetPanel(
+                        
+                        # Added a sub-tab to explore the song sentiment plot.
+                        # Added a break for aesthetic purposes.
+                        
                         tabPanel("Discover",
                                  h3("Song Sentiment", style = "color:mediumorchid"),
                                  br(),
+                          
+                          # Added a sidebar panel with information about what the graph shows and instructions on how to use it.
+                                 
                           sidebarLayout(
                               sidebarPanel(
                                   p("Analyze the musical sentiment of songs from Queen's 15 studio albums."),
                                   p("Each quadrant corresponds to a different sentiment. According to Spotify, valence is a measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry). A song with high energy and high valence would be happy and joyful sounding, whereas a song with low valence and low energy would be described as sad or depressing."),
                                   p("Hover over a data point to find out more information.")
                               ),
+                              
+                              # Added a plotly graph to the main panel output.
+                              # Wrote a paragraph about the graph and what it shows. Discussed trends or things to look for on the graph.
+                              
                               mainPanel(
                                   plotlyOutput("plot2"),
                                   h4("About This Graph", style = "color:mediumorchid"),
@@ -159,9 +175,15 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                               )
                           ),
                         
+                        # Created another sub-tab with statistical analysis of the same sentiment plot.
+                        
                         tabPanel("Statistical Analysis",
                                  h3("Statistical Analysis of Song Sentiment", style = "color:mediumorchid"),
                                  br(),
+                                 
+                                 # Added a sidebar panel with instructions of how to interact with the graph.
+                                 # Used checkbox inputs to select multiple albums from a list that will then display on the graph, with one album automatically selected.
+                                 
                                  sidebarLayout(
                                      sidebarPanel(
                                         helpText("Choose an album to insert its regression line on the graph."),
@@ -183,6 +205,8 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                                                           "Made In Heaven"), selected = "Queen")
                                                  ),
                                      
+                                     # Created a main panel with a plot output and included a paragraph explaining the statistical relationship and notes about the graph.
+                                     
                                      mainPanel(
                                          plotOutput("plot3"),
                                          h4("About This Graph", style = "color:mediumorchid"),
@@ -193,10 +217,16 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                              )
                          ),
                  
+                # Created a new tab for Lyric Association.
+                # Added a header paragraph with the questions that drove me to look into the lyrical composition of Queen's six chart-topping songs.
+                
                  tabPanel("Lyric Association",
                           h3("Lyric Association", style = "color:mediumorchid"),
                           h6("Is there anything about the lyrical composition of Queen's six chart-topping songs that made them so popular? Do any of these songs have repeated words in common that somehow appeal to listeners? Explore the word clouds to find out!",style = "color:gray"),
                           br(),
+                          
+                          # Added a sidebar with a drop-down menu that gives a choice of Queen's six hit songs.
+                          
                           sidebarLayout(
                               sidebarPanel(
                                   selectInput("selection", "Choose a song:",
@@ -207,11 +237,17 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                                              "Crazy Little Thing Called Love",
                                                              "Another One Bites The Dust")),
                                   hr(),
+                                  
+                                  # Added a slider that adjusts the number of words in the wordcloud from 1 to 100 words, automatically starting at 30.
+                                  # Wrote some instructions about how to use the panel and the word cloud.
+                                  
                                   sliderInput("max",
                                               "Maximum Number of Words:",
                                               min = 1,  max = 100,  value = 30),
                                   p("Create a lyrical word cloud to see the most frequently used words in each of Queen's six chart-topping songs."),
                                   p("Select which song you would like to see, then use the slider to select how many words appear in the graphic.")),
+                              
+                              # Set the main panel to output the wordcloud plot.
                               
                               mainPanel(
                                   plotOutput("cloudPlot")
@@ -221,14 +257,23 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                           
                  ),
                  
+                # Created another tab with additional features that do not fall into one category.
+                
                  tabPanel("More Features!",
+                          
+                    # Made a sub-tab about musical key makeup of songs. 
+                          
                     tabsetPanel(
                         tabPanel("Musical Key Makeup",
                             h3("Musical Key Makeup by Album", style = "color:mediumorchid"),
-                          sidebarLayout(
-                              sidebarPanel(
-                                  helpText("Choose an album to view the number of songs in each key. Hover over the section of the bar to find out more information."),
-                                  checkboxGroupInput("keyalb", h3("Album"),
+                          
+                            # Added a sidebar with instructions of how to interact with the graph.
+                            # Used a checkbox list for selecting which albums appear on the graph. Automatically selects their first three albums.
+                            
+                            sidebarLayout(
+                                sidebarPanel(
+                                     helpText("Choose an album to view the number of songs in each key. Hover over the section of the bar to find out more information."),
+                                     checkboxGroupInput("keyalb", h3("Album"),
                                                      choices = list("Queen", 
                                                                     "Queen II", 
                                                                     "Sheer Heart Attack", 
@@ -248,18 +293,28 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                                                                                     "Sheer Heart Attack"))
                           ),
                           
+                          # Used the plot output as the main panel.
+                          
                           mainPanel(
                               plotlyOutput("keyplot"),
                           )
                         )
                       ),
                         
+                        # Created a new sub-tab with song duration.
+                      
                         tabPanel("Song Duration",
                             h3("Song Duration by Album", style = "color:mediumorchid"),
-                              sidebarLayout(
+                            
+                             # Added a sidebar panel with instructions about how to interact with the graph.
+                              
+                             sidebarLayout(
                                   sidebarPanel(
                                       helpText("Hover over a point on the scatter plot to retrieve the song title and information. You can also try using the zoom and pan feautres located in the top right corner of the graph.")),
                        
+                                 # Input the plot to be the output on the mainPanel.
+                                 # Wrote about things to note about the graph.
+                                  
                                  mainPanel(
                                      plotlyOutput("durationplot"),
                                      h4("About This Graph", style = "color:mediumorchid"),
@@ -268,12 +323,20 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                             )
                         ),
                       
+                      # Created another sub-tab about lexical diversity.
+                      
                       tabPanel("Lexical Diversity",
                         h3("Lexical Diversity by Album", style = "color:mediumorchid"),
+                        
+                            # Created a sidebar with definitions and information about what the graph shows.
+                        
                             sidebarLayout(
                                 sidebarPanel(
                                     helpText("Lexical Diversity is a measure of the different number of words used in a song or text. A high lexical diversity means that very few words are repeated throughout, while a low lexical diversity refers to a song that is repetitive."),
                                     helpText("Hover over a point on the scatter plot to retrieve information about the corresponding song.")),
+                                
+                                    # Made the output of the mainPanel to be the lexical diversity plotly.
+                                    # Wrote about what the graph shows and things to note when looking at it.
                                 
                                     mainPanel(
                                         plotlyOutput("lexdivplot"),
@@ -283,21 +346,32 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                 )
                             ),
                       
+                      # Created another sub-tab about the Key of songs on albums.
+                      
                       tabPanel("Song Keys",
                             h3("Key of Songs by Album", style = "color:mediumorchid"),
+                            
+                                # Created a sidebar panel that describes what the graph shows.
+                            
                                 sidebarLayout(
                                     sidebarPanel(
                                         helpText("Observe the ratio of major and minor songs in each album.")),
-                                         mainPanel(
-                                             plotOutput("keysongplot"),
-                                             h4("About This Graph", style = "color:mediumorchid"),
-                                             p("Most songs are written in the major key, as they sound brighter and more cheerful. This graph shows that for most of Queen's albums, the majority of the album's songs are in the major key. However, the last two albums that Freddie Mercury worked on and was alive for, 'Innuendo' and 'The Miracle', noticably have more songs in the minor key. Songs in the minor key often sound darker and sadder. Both of these albums were released after Mercury's HIV diagnosis, which one could speculate is why there are more sad songs.")
+                                    
+                                    # Made the main panel output to be the song key plot.
+                                    # Wrote about what can be observed from the plot.
+                                    
+                                    mainPanel(
+                                         plotOutput("keysongplot"),
+                                         h4("About This Graph", style = "color:mediumorchid"),
+                                         p("Most songs are written in the major key, as they sound brighter and more cheerful. This graph shows that for most of Queen's albums, the majority of the album's songs are in the major key. However, the last two albums that Freddie Mercury worked on and was alive for, 'Innuendo' and 'The Miracle', noticably have more songs in the minor key. Songs in the minor key often sound darker and sadder. Both of these albums were released after Mercury's HIV diagnosis, which one could speculate is why there are more sad songs.")
                                     )
                                 )
                             )
                         )
                     ),
                  
+                 # Created an about tab with information about the project, sources, and the creator (myself).
+                
                  tabPanel("About",
                           h3("Project Summary", style = "color:mediumorchid"),
                           p("This project analyzes audio features of songs from Queen's 15 studio albums. The various tabs look at various information gathered about the songs and albums, from their audio features to the senitment they give off. Some of the data was sourced from Spotify, specifically from their ", a("Web API Reference website", href = "https://developer.spotify.com/documentation/web-api/"),". Other data, such as the lyrics and features of Queen's chart-topping songs, was sourced from GitHub user walkerq and can be found ", a("here", href = "https://github.com/walkerkq/musiclyrics"),". I also scraped lyrics from ", a("Genius API for developers", href = "https://docs.genius.com/"),"."),
@@ -307,8 +381,16 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    
+    # Used the observe function to filter through the data interactively before it goes into creating the plot.
+    # Filtering the data but the ablum name that is selected by the user.
+    
     observe({
     qtable <- queen %>% filter(album_name == input$album)
+    
+    # Setting the plot output to render a ggplot
+    # Set the x and y aesthetics, with the y aesthetic set by the user's input from the drop-down menu.
+    # Set labels and titles.
     
     output$plot <- renderPlot(
         ggplot(qtable, aes(x = track_name, !!input$feature)) + 
@@ -321,9 +403,18 @@ server <- function(input, output) {
     })
     
     
+    # Used observe to filter the data prior to it being used in the graph.
+    # Filtered the album by the user's input.
+    
     observe({
         qdenplot <- queen %>% filter(album_name %in% input$albden)
-        
+       
+        # Set the plot output to create a ggplot using the filtered data.
+        # Set the x aesthetic to be the feature chosen by the user.
+        # Grouped the data within aesthics and set the fill color.
+        # Used geom_denisty to create a density plot.
+        # Changed the alpha level so that the various density plots can layer but can still be seen when overlapping.
+         
         output$denplot <- renderPlot(
             ggplot(qdenplot, aes(!!input$featden, group = album_name, fill = album_name, text = album_name)) +
                 geom_density(alpha=0.7, color=NA)+
@@ -335,7 +426,14 @@ server <- function(input, output) {
     })
     
     
+    # Set the plot output to render a Plotly object.
+    
     output$plot2 <- renderPlotly({
+        
+        # Used the plot_ly function to create a plotly graph.
+        # Set the x and y variables from the dataset and colored the data points by album name.
+        # Made the plot into a scatterplot.
+        # Added the hover-over feature so that when hovering over a point, the song, album, valence, and energy for that specific point will appear in a text box.
         
        plot_ly(data = queen, x = ~valence, y = ~energy, color = ~album_name, colors = "Set1",
                type = 'scatter', mode = 'markers',
@@ -344,8 +442,15 @@ server <- function(input, output) {
                              "</br> Album: ", album_name,
                              "</br> Valence: ", valence,
                              "</br> Energy: ", energy)) %>%
+            
+            # Created quadrants on the graph.
+            
             add_segments(x = 0.5, xend = 0.5, y = 0, yend = 1) %>%
             add_segments(x = 0, xend = 1, y = 0.5, yend = 0.5) %>%
+            
+            # Added labels and titles.
+            # Added annotations to the quadrants to show what mood each quadrant corresponds to.
+            
             layout(title = 'Song Sentiment',
                    xaxis = list(title = 'Valence',
                                 zeroline = TRUE,
@@ -358,6 +463,8 @@ server <- function(input, output) {
                                       showarrow=FALSE))
     })
     
+    
+    # 
     
     observe({
         qplot3 <- queen %>% filter(album_name %in% input$albs)
