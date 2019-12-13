@@ -7,6 +7,8 @@
 #    http://shiny.rstudio.com/
 #
 
+# Loading all necessary libraries to obtain access to necessary commands.
+
 library(shiny)
 library(shinythemes)
 library(DT)
@@ -21,6 +23,8 @@ library(spotifyr)
 library(ggrepel)
 library(tidyverse)
 
+# Reading in the dataframes from the rds and csv files.
+
 queen <- read_rds("queen.rds")
 lyrics <- read_csv("https://raw.githubusercontent.com/walkerkq/musiclyrics/master/billboard_lyrics_1964-2015.csv")
 qtop <- read_rds("qtop.rds")
@@ -28,17 +32,30 @@ queenkey <- read_rds("queenkey.rds")
 lexical_diversity <- read_rds("lexical_diversity.rds")
 
 # Define UI for application that draws a histogram
+# For aesthetic purposes, set the theme to "cyborg" using the shinythemes.
+
 ui <- fluidPage(theme = shinytheme("cyborg"),
+                
+                # Set up a navigation bar for easy exploration of the website.
+                
                 navbarPage("Analysis of Queen",
-                 tabPanel("Audio Features",
-                    tabsetPanel(
-                        tabPanel("Bar Plot",
+                           
+                    # Created a tab called Audio Features with two sub-tabs, one with bar plots and one with density plots.
+                    # Added headings to each tab and changed the color of headings to purple, which is carried out throughout the whole app.
+                    
+                    tabPanel("Audio Features",
+                        tabsetPanel(
+                            tabPanel("Bar Plot",
                                  h3("Bar Plot of Audio Features", style = "color:mediumorchid"),
                                  br(),
-                          sidebarLayout(
-                              sidebarPanel(
-                                  helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's audio features."),
-                                  selectInput("album", h3("Album"), 
+                                 
+                                 # Added a sidebar with a panel providing information about the purpose of the graph and directions of how to explore the page.
+                                 # Used the selectInput function to create a pull-down menu with the 15 albums as options. Only one can be selected at a time.
+                                 
+                            sidebarLayout(
+                                sidebarPanel(
+                                     helpText("Choose one of Queen's 15 studio albums to obtain a graph with each song's audio features."),
+                                     selectInput("album", h3("Album"), 
                                               choices = list("Queen", 
                                                              "Queen II", 
                                                              "Sheer Heart Attack", 
@@ -54,8 +71,14 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                                              "The Miracle", 
                                                              "Innuendo",
                                                              "Made In Heaven"), selected = 1),
+                                     
+                                     # Added another pull-down menu for the features from the albums.
+                                     # Gave five options of which features to explore.
+                                     
                                   varSelectInput("feature", h3("Feature"), 
                                                  queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
+                                  
+                                  # Added paragraphs describing what each feature is and how it is measured.
                                   
                                   p(strong("Danceability:"), "describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."),
                                   p(strong("Energy:"), "a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."),
@@ -65,18 +88,31 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                   
                                   ),
                               
+                              # Added a plot for the main panel.
+                                
                               mainPanel(
                                   plotOutput("plot")
                                   )
                               )
                           ),
                         
+                        # For the second sub-tab, created a density plot with a header also in purple.
+                        # Added a break for aesthetic purposes.
+                          
                         tabPanel("Density Plot",
                                  h3("Density Plot of Audio Features", style = "color:mediumorchid"),
                                  br(),
+                                 
+                                 # Added a sidebar with the sidebar panel describing how to explore the page and what it shows.
+                                 
                                  sidebarLayout(
                                      sidebarPanel(
                                          helpText("Choose out of Queen's 15 studio albums to obtain a density graph with the album's audio features."),
+                                        
+                                         # Added a drop-down menu with the features to choose between.
+                                         # Added a checkbox group so that multiple albums could be chosen at once to create a layered density plot.
+                                         # Automatically selects for their first album, "Queen", upon arrival to the page.
+                                         
                                          varSelectInput("featden", h3("Feature"), 
                                                         queen %>% select(danceability, energy, liveness, speechiness, acousticness)),
                                          checkboxGroupInput("albden", h3("Album"), 

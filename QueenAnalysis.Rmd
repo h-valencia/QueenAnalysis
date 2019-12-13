@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE)
 
+# Loading all necessary libraries to obtain access to all the commands needed to create project.
+
 library(tm)
 library(SnowballC)
 library(wordcloud)
@@ -18,14 +20,25 @@ library(ggplot2)
 library(memoise)
 library(spotifyr)
 library(ggrepel)
+library(rvest)
 library(tidyverse)
 ```
 
 ```{r}
+
+# Reading in a dataset from GitHub with Billboard music information and lyrics.
+
 lyrics <- read_csv("https://raw.githubusercontent.com/walkerkq/musiclyrics/master/billboard_lyrics_1964-2015.csv")
 ```
 
 ```{r}
+
+# Creating a new dataframe with only Queen's top hits.
+# The top hits are those that were ranked in the Billboard year end charts.
+# Filtered the Billboard data for Queen.
+# Changed the titles of the songs to their proper punctuation and spelling
+# Removed a duplicate by filtering for year.
+
 qtop <- lyrics %>%
   filter(Artist == "queen") %>%
   na.omit() %>%
@@ -39,22 +52,34 @@ qtop <- lyrics %>%
   filter(!Year == 1992) %>%
   select(Rank, Song, Lyrics)
 
+# Created an rds file of the data frame for easier access within the Shiny app.
+
 write_rds(qtop, "QueenAnalysis/qtop.rds")
 ```
 
 ```{r}
+
+# Gaining access to the Spotify developer API by uploading my client ID, secret code, and access token.
+
 Sys.setenv(SPOTIFY_CLIENT_ID = "1ce7b32e4d444e1d9df600fd87f33350")  
 Sys.setenv(SPOTIFY_CLIENT_SECRET = "6709043e71214357892e9c271fe67625")  
 access_token <- get_spotify_access_token()
 ```
 
 ```{r}
+
+# Got all of Queen's songs and audio features for each.
+
 queen <- get_artist_audio_features("queen")
 ```
 
 ```{r}
+
+# Created a list with Queen's 15 studio albums.
+
 studio_albums <- c("Queen", "Queen II", "Sheer Heart Attack", "A Night At The Opera", "A Day At The Races", "News Of The World", "Jazz", "The Game", "Flash Gordon", "Hot Space", "The Works", "A Kind Of Magic", "The Miracle", "Innuendo", "Made In Heaven")
   
+# Filtered through all the Queen songs to get rid of any duplicates, remixes, live versions, etc.
   
 queen <- queen %>%
   filter(album_name %in% studio_albums) %>%
@@ -77,10 +102,20 @@ queen <- queen %>%
   filter(!str_detect(track_name, "The Invisible Man - Extended Version")) %>%
   filter(!str_detect(track_name, "Track 13"))
 
+# Turned the dataframe into an rds file for easier access in Shiny.
+
 write_rds(queen, "QueenAnalysis/queen.rds")
 ```
 
 ```{r}
+
+# Created a new dataframe with the key of Queen's songs.
+# Selected for only album name and the key.
+# Grouped by both then mutated to count the number of songs in each key.
+# Used unique to clean up the dataframe and avoid repeats.
+# Created a new column with the totals of each key across all albums.
+# Created a percentage column to turn the total number of songs in each key into a percentage.
+
 queenkey <- queen %>%
   select(album_name, key_name) %>%
   group_by(album_name, key_name) %>%
@@ -90,11 +125,144 @@ queenkey <- queen %>%
   mutate(total=sum(n)) %>%
   mutate(percent=round((n/total)*100))
 
+# Turned the dataframe into an rds file for easier access when using Shiny.
+
 write_rds(queenkey, "QueenAnalysis/queenkey.rds")
 ```
 
 
+```{r}
 
+# Created a function called genius_get_artis that filters through the Genius website and data and retrieves the desired artist.
+# Set the baseURL to search through the data.
+# Set how the paste operates within the function to add onto the baseURL and retrieve desired information.
+# Gets the artist ID on Genius.
+
+genius_get_artists <- function(artist_name, n_results = 10) {
+  baseURL <- 'https://api.genius.com/search?q=' 
+  requestURL <- paste0(baseURL, gsub(' ', '%20', artist_name),
+                       '&per_page=', n_results,
+                       '&access_token=', genius_token)
+  
+  res <- GET(requestURL) %>% content %>% .$response %>% .$hits
+  
+  map_df(1:length(res), function(x) {
+    tmp <- res[[x]]$result$primary_artist
+    list(
+      artist_id = tmp$id,
+      artist_name = tmp$name
+    )
+  }) %>% unique
+}
+
+# Used the genius_get_artist function to obtain results for Queen.
+# Created a new dataframe with the information retrieved from the Genius scraping.
+
+genius_artists <- genius_get_artists('queen')
+
+# Retrieving all track URLs by Queen.
+
+baseURL <- 'https://api.genius.com/artists/' 
+requestURL <- paste0(baseURL, genius_artists$artist_id[2], '/songs')
+
+# Created a list of the track URLs using an if else function.
+
+track_lyric_urls <- list()
+i <- 1
+while (i > 0) {
+  tmp <- GET(requestURL, query = list(access_token = genius_token, per_page = 50, page = i)) %>% content %>% .$response
+  track_lyric_urls <- c(track_lyric_urls, tmp$songs)
+  if (!is.null(tmp$next_page)) {
+    i <- tmp$next_page
+  } else {
+    break
+  }
+}
+
+# Filtering the search results so that only songs with Queen as the primary artist are scraped.
+
+filtered_track_lyric_urls <- c()
+filtered_track_lyric_titles <- c()
+index <- c()
+
+
+for (i in 1:length(track_lyric_urls)) {
+  if (track_lyric_urls[[i]]$primary_artist$name == "Queen") {
+    filtered_track_lyric_urls <- append(filtered_track_lyric_urls, track_lyric_urls[[i]]$url)
+    filtered_track_lyric_titles <- append(filtered_track_lyric_titles, track_lyric_urls[[i]]$title)
+    
+    index <- append(index, i)
+  }
+}
+```
+
+```{r}
+# Creating a data frame that combines the URLs for each track and the song titles.
+
+queen_lyrics <- data.frame(filtered_track_lyric_urls, filtered_track_lyric_titles)
+queen_lyrics <- queen_lyrics[filtered_track_lyric_titles %in% queen$track_name, ]
+
+queen_lyrics$filtered_track_lyric_urls <- as.character(queen_lyrics$filtered_track_lyric_urls)
+queen_lyrics$filtered_track_lyric_titles <- as.character(queen_lyrics$filtered_track_lyric_titles)
+```
+
+```{r}
+
+# Used the rvest package to scrape the lyrics from Genius.
+# Repeated the scraping for the 93 results that come up in the queen_lyrics dataframe using the for in function.
+
+lyric_text <- rep(NA, 93)
+for (i in 1:93) {
+  lyric_text[i] <- read_html(queen_lyrics$filtered_track_lyric_urls[i]) %>% 
+    html_nodes(".lyrics p") %>% 
+    html_text()
+}
+
+# Cleaning the lyrics and putting them in generally the same format so that there are no differences that can cause issues or interfere with anything later on.
+
+for (i in 1:93) {
+  lyric_text[i] <- gsub("([a-z])([A-Z])", "\\1 \\2", lyric_text[i])
+  lyric_text[i] <- gsub("\n", " ", lyric_text[i])
+  lyric_text[i] <- gsub("\\[.*?\\]", " ", lyric_text[i])
+  lyric_text[i] <- tolower(lyric_text[i])
+  lyric_text[i] <- gsub("[ [:punct:] ]", " ", lyric_text[i])
+  lyric_text[i] <- gsub(" {2,}", " ", lyric_text[i])
+}
+
+# Creating a dataframe with the scraped lyrics and the track name.
+
+genius_data <- data.frame(track_name = queen_lyrics$filtered_track_lyric_titles, lyrics = lyric_text)
+genius_data$track_name <- as.character(genius_data$track_name)
+genius_data$lyrics <- as.character(genius_data$lyrics)
+
+# Creating a dataframe with the combined Spotify and Genius data.
+# Cleaned the new dataframe to get rid of the songs whose lyrics were not found.
+
+spotify_genius <- full_join(genius_data, queen, by = "track_name")
+spotify_genius <- spotify_genius %>%
+  drop_na(lyrics)
+```
+
+```{r}
+
+# Unnesting the Spotify/Genius dataframe so the lyrics appear in the dataframe itself.
+
+tidy_queen <- spotify_genius %>% unnest_tokens(word, lyrics)
+
+# Creating a lexical diversity dataframe.
+# Calculated lexical diversity by finding the number of unique words in each song and dividing by the total number of words in the song.
+# Selecting for just the track name, lexical diversity, album name, and album year.
+
+lexical_diversity <- tidy_queen %>% 
+  group_by(track_name, album_release_year) %>% 
+  mutate(lex_div = length(unique(word))/length(word)) %>% 
+  select(track_name, lex_div, album_release_year, album_name) %>% 
+  distinct()
+
+# Turning the dataframe into an rds file for easier access in Shiny.
+
+write_rds(lexical_diversity, "QueenAnalysis/lexical_diversity.rds")
+```
 
 
 
